@@ -23,9 +23,9 @@ def Pressure(z):
 	P = rho*g*z
 	return P
 
-def pressureDrop(y):
+def pressureDrop(y,hmax):
 	# hmax = 				# max height of volcano
-    # xmax = 				# max radius, distance from centre to edge of volcano. 
+    xmax = hmax				# max radius, distance from centre to edge of volcano. 
     delh = -(hmax/xmax) * y + hmax
     Pdrop = Pressure(delh)
     return Pdrop  
@@ -58,40 +58,55 @@ def findTemp(y,z):
     T = Ti[j]
     return T
 
-def findPressure(y,z):
+def findPressure(y,z,hmax):
     # hmax = max height of volcano
     # xmax =  max radius, distance from centre to edge of volcano. 
     delh = -(hmax/xmax) * y + hmax
     Pi = Pressure(delh-z)
     return Pi
 
-def testPhase(Pi, Ti)
-    if (Phase(Pi,Ti) == "vapour"):
-        return True
-    return False
+def testPhase(Pi, Ti):
+    if (Phase(Pi,Ti) != "vapour"):
+        return False
+    return True
 
-def get_Gold():
-
-
-  
-
-
-
-    
-
-
-
-
-
-
-def tempDistribution():
+def get_Gold(hmax):
+    # hmax = 
+    #x1 = hmax
     '''
-    Display Temperature distribution graph.
-    Sliders for points.
-    
+    n = 1000
+    rangex = np.linspace(0,x1,num = n, endpoint = False)
+    Pdrop = [0]*n
+    for i in range(len(rangex)):
+        np.append(Pdrop,pressureDrop(rangex[i],hmax)
+        #print(Pdrop[i])
     '''
-    ysldr = IntSlider(value = 50, description='$yi$', min=50, max = 9750, step=50)
-    zsldr = IntSlider(value = -3800, description='$zi$', min=-3800, max = -25, step=50)
+    j = 0 
+    while (hmax > yi[j]):   # Find values we can use from temperature distribution
+        j+=1
+    # Initialise arrays    
+    rangex = yi[0:j+1]    
+    Pdrop = [0]*len(rangex)
+    Pi = [0]*len(rangex)
+    Ti = [0]*len(rangex)
+    totalVolume = 0
+    #count = 0
+    for i in range(1, len(rangex)): # Loop through sections in x direction
+        count = 0
+        np.append(Pdrop,pressureDrop(rangex[i],hmax))
+        for j in range(0,len(yi),61):   #Loop through depths in z direction
+            ypoint = rangex[i]
+            zpoint = zi[j]
+            np.append(Pi,findPressure(ypoint,zpoint,hmax))
+            np.append(Ti,findTemp(ypoint,zpoint))
+            newP = Pi[count] - Pdrop[count]
+            if (testPhase(newP,Ti[count]) == False):    #Check if water boils, stop when it does not
+                #i = len(rangex)
+                volume = math.Pi * (rangex[i]-rangex[i-1])**2 * zpoint  # Calculate volume of cylinder
+                j = len(yi)
+                totalVolume += volume
+            count+=1    
 
-#tempDistribution()    
 
+#get_Gold(2797)
+#print(Pdrop)
