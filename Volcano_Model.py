@@ -20,6 +20,13 @@ def Pressure(z):
 	P = rho*g*z
 	return P
 
+def pressureDrop(y):
+'''
+
+
+
+'''
+
 def Phase(P,T):
 	#Tc = 647 # Kelvin
 	#Pc = 22.064 # MPa
@@ -42,6 +49,13 @@ def findTemp(y,z):
         T = Temperature at point (y,z)
     
     '''
+def findPressure(z):
+'''
+
+
+
+
+'''
 
 def get_Gold():
 
@@ -75,7 +89,7 @@ Steps of function.
 5. Calculate Pi - Pdrop and check if < Pboil.
 6. Once Pi - Pdrop is not < Pboil, then get depth of column to this point andcalculate the volume of water that was boiled into steam from this column. (depth * step size 1 * breadth in z direction??)
 7. Loop over all columns until x = x1
-8. sum total volume boiled to steam. * 2 because of initial case assumption that volcano was symmetric. 
+8. sum total volume boiled to steam. radial, and times porosity for fluid volume because of initial case assumption that volcano was symmetric. 
 9. Calculate amount of gold (volume * concentration of gold)
 
 '''
