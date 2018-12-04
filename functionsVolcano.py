@@ -102,11 +102,26 @@ def get_Gold(hmax):
             newP = Pi[count] - Pdrop[count]
             if (testPhase(newP,Ti[count]) == False):    #Check if water boils, stop when it does not
                 #i = len(rangex)
-                volume = math.Pi * (rangex[i]-rangex[i-1])**2 * zpoint  # Calculate volume of cylinder
+                volume = math.Pi * zpoint * ((rangex[i])**2-(rangex[i-1])**2)  # Calculate volume of cylinder
                 j = len(yi)
                 totalVolume += volume
             count+=1    
+    
+    minPorosity = 0.045
+    maxPorosity = 0.0966666667
+    averagePorosity = 0.07083333333333333
+    
+    minVolume = totalVolume * minPorosity   # in m^3
+    maxVolume = totalVolume * maxPorosity   # in m^3
+    averageVolume = totalVolume * averagePorosity   # in m^3 
+    
+    minGoldConc = 4.78358   # in ppm
+    maxGoldConc = 16.33333  # in ppm
+    averageGoldConc = 10.55845833333333 # in ppm
 
+    minGold = minVolume * minGoldConc   # in grams
+    maxGold = maxVolume * maxGoldConc   # in grams
+    averageGold = averageVolume * averageGoldConc   # in grams   
 
 #get_Gold(2797)
 #print(Pdrop)
