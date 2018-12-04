@@ -169,5 +169,6 @@ def get_Gold(hmax):
 
     return averageGold
 
+
 get_Gold(2797)
 #print(Pdrop)
