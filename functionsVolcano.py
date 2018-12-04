@@ -9,6 +9,7 @@ import numpy as np
 import numpydoc as npd
 from IAPWS.iapws_master.iapws import _utils, IAPWS97
 from scipy.interpolate import griddata
+import math
 #import sphinx_rtd_theme as srt
 
 # read temperature data 
@@ -104,7 +105,9 @@ def findTemp(y,z):
 
 def findPressure(y,z,hmax):
     # hmax = max height of volcano
-    xmax = hmax # max radius, distance from centre to edge of volcano. 
+
+    # Chnage xmax for different type of volcanoes (angles).
+    xmax = hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
     delh = -(hmax/xmax) * y + hmax
     Pi = Pressure(delh-z)
     return Pi
@@ -113,42 +116,50 @@ def testPhase(Pi, Ti):
     if (Phase(Pi,Ti) != "Vapour"):
         return False
     return True
-
+#print(testPhase(2215200, 500))
 def get_Gold(hmax):
     # hmax = 
     #x1 = hmax
-    '''
-    n = 1000
-    rangex = np.linspace(0,x1,num = n, endpoint = False)
-    Pdrop = [0]*n
-    for i in range(len(rangex)):
-        np.append(Pdrop,pressureDrop(rangex[i],hmax)
-        #print(Pdrop[i])
-    '''
+    # n = 1000
+    # rangex = np.linspace(0,x1,num = n, endpoint = False)
+    # Pdrop = [0]*n
+    # for i in range(len(rangex)):
+    #     np.append(Pdrop,pressureDrop(rangex[i],hmax)
+    #     #print(Pdrop[i])
+
     j = 0 
     while (hmax > yi[j]):   # Find values we can use from temperature distribution
         j+=1
     # Initialise arrays    
-    rangex = yi[0:j+1]    
-    Pdrop = [0]*len(rangex)
-    Pi = [0]*len(rangex)
-    Ti = [0]*len(rangex)
+    rangex = yi[0:j+1]   
+    #print(rangex) 
+    Pdrop = []
+    Pi = []
+    Ti = []
     totalVolume = 0
     #count = 0
+    for i in range(0, len(rangex)): # Loop through sections in x direction
+        Pdrop = np.append(Pdrop,pressureDrop(rangex[i],hmax))
+    #print(len(Pdrop))
     for i in range(1, len(rangex)): # Loop through sections in x direction
         count = 0
-        np.append(Pdrop,pressureDrop(rangex[i],hmax))
         for j in range(0,len(yi),61):   #Loop through depths in z direction
             ypoint = rangex[i]
             zpoint = zi[j]
-            np.append(Pi,findPressure(ypoint,zpoint,hmax))
-            np.append(Ti,findTemp(ypoint,zpoint))
-            newP = Pi[count] - Pdrop[count]
-            if (testPhase(newP,Ti[count]+273.15) == False):    #Check if water boils, stop when it does not
+            Pi = np.append(Pi,findPressure(ypoint,zpoint,hmax))
+            Ti = np.append(Ti,findTemp(ypoint,zpoint))
+            newP = Pi[count] - Pdrop[i]
+            #print(Pi)
+            #print(newP)
+            #print(Ti)
+            if (testPhase(newP,Ti[count]+273.15) == False):    # Check if water boils, stop when it does not
                 #i = len(rangex)
-                volume = math.Pi * zpoint * ((rangex[i])**2-(rangex[i-1])**2)  # Calculate volume of cylinder
-                j = len(yi)
+                volume = math.pi * (-1) *zpoint * ((rangex[i])**2-(rangex[i-1])**2)  # Calculate volume of cylinder
+                #print(zpoint)
+                #j = len(yi)
                 totalVolume += volume
+                break
+                #print(totalVolume)
             count+=1    
     
     minPorosity = 0.045
@@ -167,8 +178,14 @@ def get_Gold(hmax):
     maxGold = maxVolume * maxGoldConc   # in grams
     averageGold = averageVolume * averageGoldConc   # in grams   
 
-    return averageGold
+    return averageGold  #in grams
 
 
-get_Gold(2797)
-#print(Pdrop)
+print(get_Gold(1000))
+#print(Pdrop) 
+
+# Graphs to display
+
+# Temperature distribution. contour
+# Depth where no more boiling occurs for each column. bar/line
+# Amount of gold boiled from each column. bar/line
