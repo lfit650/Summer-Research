@@ -43,8 +43,21 @@ yi,zi,Ti = np.array([ynew,znew,Tnew])
 #print(Ti)
 #print(len(zi))
 
+
+
 # Create the contour plot
-#plt.imshow(Tnew, vmin=Ti.min(), vmax=Ti.max(), origin='lower', extent=[yi.min(), yi.max(), zi.min(), zi.max()])
-#plt.contourf(yi,zi,Ti, colors='jet')
-#plt.colorbar()  
-#plt.show()
+#plt.imshow(Ti, cmap = 'jet', origin='lower', extent=[yi.min(), yi.max(), zi.min(), zi.max()])
+
+#order temperature. change y and z accordingly?? 
+index = np.argsort(Ti)
+sortedT = np.sort(Ti)
+Sy = yi
+Sz = zi
+for i in range(len(Ti)): 
+    Sy[index[i]] = yi[i]
+    Sz[index[i]] = zi[i] 
+print(sortedT)    
+plt.contourf([Sy,Sz],sortedT)
+
+plt.colorbar()  
+plt.show()
