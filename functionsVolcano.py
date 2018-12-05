@@ -2,7 +2,7 @@
 # Geothermal System.
 #import import_Temperature
 from ipywidgets import interact, fixed, interactive_output, HBox, Button, VBox, Output, IntSlider, Checkbox, FloatSlider
-import import_Temperature
+#import import_Temperature
 from ipywidgets import interact, fixed, interactive_output, HBox, Button, VBox, Output, IntSlider, Checkbox, FloatSlider
 import scipy as sp
 import numpy as np
@@ -10,6 +10,8 @@ import numpydoc as npd
 from IAPWS.iapws_master.iapws import _utils, IAPWS97
 from scipy.interpolate import griddata
 import math
+import matplotlib.pyplot as plt	
+from matplotlib import cm
 #import sphinx_rtd_theme as srt
 
 # read temperature data 
@@ -41,6 +43,7 @@ znew = list(np.linspace(-dz/2.,zmin-dz/2., abs(zmin)/dz+1))+ list(zu[i+1:])
 # ze = list(np.linspace(0,ze[i+1], abs(ze[i+1])/dz+1))+ list(ze[i+2:])
 			
 [ynew,znew] = np.meshgrid(ynew, znew)
+shp = ynew.shape
 ynew = ynew.flatten()
 znew = znew.flatten()
 Tnew = griddata(np.array([y,z]).T,T,np.array([ynew,znew]).T, method='linear', fill_value = np.min(T))
@@ -189,3 +192,31 @@ print(get_Gold(1000))
 # Temperature distribution. contour
 # Depth where no more boiling occurs for each column. bar/line
 # Amount of gold boiled from each column. bar/line
+ 
+
+ #order temperature. change y and z accordingly?? 
+# index = np.argsort(Ti)
+# revIndex = index[::-1]
+# sortedT = np.sort(Ti)
+# revST = sortedT[::-1]
+# Sy = copy(yi)
+# Sz = copy(zi)
+# for i in range(len(Ti)): 
+#     Sy[revIndex[i]] = yi[i]
+#     Sz[revIndex[i]] = zi[i] 
+# #print(sortedT)    
+# #print(Sy)
+# #print(Sz)
+# #print(revST)
+# plt.contourf(Sy,Sz,revST)
+
+yi2 = yi.reshape(shp)
+plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp))
+
+
+# sortedT = np.sort(Ti)
+# CS = plt.imshow(sortedT, origin='lower', cmap=cm.jet, extent = [yi.min(),yi.max(),zi.min(),zi.max()], aspect='auto')
+
+
+# plt.colorbar()
+plt.show()

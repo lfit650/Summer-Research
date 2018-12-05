@@ -31,6 +31,7 @@ znew = list(np.linspace(-dz/2.,zmin-dz/2., abs(zmin)/dz+1))+ list(zu[i+1:])
 # ze = list(np.linspace(0,ze[i+1], abs(ze[i+1])/dz+1))+ list(ze[i+2:])
 			
 [ynew,znew] = np.meshgrid(ynew, znew)
+shp = ynew.shape
 ynew = ynew.flatten()
 znew = znew.flatten()
 Tnew = griddata(np.array([y,z]).T,T,np.array([ynew,znew]).T, method='linear', fill_value = np.min(T))
@@ -48,16 +49,3 @@ yi,zi,Ti = np.array([ynew,znew,Tnew])
 # Create the contour plot
 #plt.imshow(Ti, cmap = 'jet', origin='lower', extent=[yi.min(), yi.max(), zi.min(), zi.max()])
 
-#order temperature. change y and z accordingly?? 
-index = np.argsort(Ti)
-sortedT = np.sort(Ti)
-Sy = yi
-Sz = zi
-for i in range(len(Ti)): 
-    Sy[index[i]] = yi[i]
-    Sz[index[i]] = zi[i] 
-print(sortedT)    
-plt.contourf([Sy,Sz],sortedT)
-
-plt.colorbar()  
-plt.show()
