@@ -184,7 +184,7 @@ def get_Gold(hmax):
     return averageGold  #in grams
 
 
-print(get_Gold(1000))
+print(get_Gold(700))
 #print(Pdrop) 
 
 # Graphs to display
@@ -211,12 +211,15 @@ print(get_Gold(1000))
 # plt.contourf(Sy,Sz,revST)
 
 yi2 = yi.reshape(shp)
-plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp))
-
-
+plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp),cmap="jet")
+#plt.legend(loc='right')
+plt.title('Temperature Distribution in Geothermal System')
+plt.xlabel('Y (km)')
+plt.ylabel('Z (km)')
 # sortedT = np.sort(Ti)
 # CS = plt.imshow(sortedT, origin='lower', cmap=cm.jet, extent = [yi.min(),yi.max(),zi.min(),zi.max()], aspect='auto')
 
 
-# plt.colorbar()
-plt.show()
+cbar = plt.colorbar()
+cbar.set_label('Temperature (\xb0C)')
+plt.savefig('FinalTempDist.png')
