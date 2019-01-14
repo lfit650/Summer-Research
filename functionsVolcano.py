@@ -119,7 +119,7 @@ def testPhase(Pi, Ti):
     if (Phase(Pi,Ti) != "Vapour"):
         return False
     return True
-#print(testPhase(2215200, 500))
+#print(Phase(70000, 363.6675))
 def get_Gold(hmax):
     # hmax = 
     #x1 = hmax
@@ -139,12 +139,13 @@ def get_Gold(hmax):
     Pdrop = []
     Pi = []
     Ti = []
+    DepthBoiled = []
     totalVolume = 0
     #count = 0
     for i in range(0, len(rangex)): # Loop through sections in x direction
         Pdrop = np.append(Pdrop,pressureDrop(rangex[i],hmax))
     #print(len(Pdrop))
-    for i in range(1, len(rangex)): # Loop through sections in x direction
+    for i in range(0, len(rangex)): # Loop through sections in x direction
         count = 0
         for j in range(0,len(yi),61):   #Loop through depths in z direction
             ypoint = rangex[i]
@@ -156,11 +157,19 @@ def get_Gold(hmax):
             #print(newP)
             #print(Ti)
             if (testPhase(newP,Ti[count]+273.15) == False):    # Check if water boils, stop when it does not
+               
+               
+                x = Phase(newP,Ti[count]+273.15)
                 #i = len(rangex)
-                volume = math.pi * (-1) *zpoint * ((rangex[i])**2-(rangex[i-1])**2)  # Calculate volume of cylinder
+                DepthBoiled = np.append(DepthBoiled,zpoint)
+                if (i ==0):
+                    volume = math.pi * (-1) *zpoint * ((rangex[i])**2)
+                else:    
+                    volume = math.pi * (-1) *zpoint * ((rangex[i])**2-(rangex[i-1])**2)  # Calculate volume of cylinder
                 #print(zpoint)
                 #j = len(yi)
                 totalVolume += volume
+                volume = 0
                 break
                 #print(totalVolume)
             count+=1    
@@ -180,11 +189,13 @@ def get_Gold(hmax):
     minGold = minVolume * minGoldConc   # in grams
     maxGold = maxVolume * maxGoldConc   # in grams
     averageGold = averageVolume * averageGoldConc   # in grams   
-
+    print(DepthBoiled)
+    #print(zi)
     return averageGold  #in grams
 
 
 print(get_Gold(700))
+#print(DepthBoiled)
 #print(Pdrop) 
 
 # Graphs to display
@@ -209,13 +220,15 @@ print(get_Gold(700))
 # #print(Sz)
 # #print(revST)
 # plt.contourf(Sy,Sz,revST)
+'''
+# TEMPERATURE DISTRIBUTION
 
 yi2 = yi.reshape(shp)
 plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp),cmap="jet")
-#plt.legend(loc='right')
 plt.title('Temperature Distribution in Geothermal System')
 plt.xlabel('Y (km)')
 plt.ylabel('Z (km)')
+
 # sortedT = np.sort(Ti)
 # CS = plt.imshow(sortedT, origin='lower', cmap=cm.jet, extent = [yi.min(),yi.max(),zi.min(),zi.max()], aspect='auto')
 
@@ -223,3 +236,7 @@ plt.ylabel('Z (km)')
 cbar = plt.colorbar()
 cbar.set_label('Temperature (\xb0C)')
 plt.savefig('FinalTempDist.png')
+'''
+
+# Does not boil with given Pdrop, volcanoes must have steeper incline, for collapse to be effective in returning gold.
+# Assumption here was 45 degrees which does not give greazt enough pressure drop as only top layer boils nothing else 
