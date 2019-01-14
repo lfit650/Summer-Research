@@ -2,8 +2,6 @@
 # Geothermal System.
 #import import_Temperature
 from ipywidgets import interact, fixed, interactive_output, HBox, Button, VBox, Output, IntSlider, Checkbox, FloatSlider
-#import import_Temperature
-from ipywidgets import interact, fixed, interactive_output, HBox, Button, VBox, Output, IntSlider, Checkbox, FloatSlider
 import scipy as sp
 import numpy as np
 import numpydoc as npd
@@ -15,6 +13,7 @@ from matplotlib import cm
 #import sphinx_rtd_theme as srt
 
 # read temperature data 
+x,y,z,P = np.genfromtxt(r'H:\Summer Research\31kBlockEWA_BH_final_xyz_P.dat', delimiter = ',').T  
 x,y,z,T = np.genfromtxt(r'H:\Summer Research\xyz_T.dat', delimiter = ',').T  
 	
 # get min x slice of data
@@ -24,7 +23,7 @@ y = y[inds]
 z = z[inds]
 z = z - np.max(z)
 T = T[inds]
-	
+P = P[inds]	
 # interpolate temperatures to finer grid in z direction
 ynew = np.unique(y)
 	
@@ -48,7 +47,13 @@ ynew = ynew.flatten()
 znew = znew.flatten()
 Tnew = griddata(np.array([y,z]).T,T,np.array([ynew,znew]).T, method='linear', fill_value = np.min(T))
 yi,zi,Ti = np.array([ynew,znew,Tnew])
+Pnew = griddata(np.array([y,z]).T,P,np.array([ynew,znew]).T, method='linear', fill_value = np.min(P))
+yi,zi,Pi = np.array([ynew,znew,Pnew])
 
+print(yi)
+print(zi)
+print(Ti)
+print(Pi)
 #print(yi)
 #print(zi)
 #for i in range(61):
@@ -107,13 +112,25 @@ def findTemp(y,z):
     return T
 
 def findPressure(y,z,hmax):
-    # hmax = max height of volcano
+    # # hmax = max height of volcano
 
-    # Chnage xmax for different type of volcanoes (angles).
+    # # Chnage xmax for different type of volcanoes (angles).
+    # xmax = hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
+    # delh = -(hmax/xmax) * y + hmax
+    # Pi = Pressure(delh-z)
+    # return Pi
+
+    i = 0
+    while (zi[i] != z):
+        i+=1
+    j = i
+    while (yi[j] != y and j<i+61):
+        j+=1
+    P = Pi[j]
     xmax = hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
     delh = -(hmax/xmax) * y + hmax
-    Pi = Pressure(delh-z)
-    return Pi
+    P = P + Pressure(delh)
+    return P
 
 def testPhase(Pi, Ti):
     if (Phase(Pi,Ti) != "Vapour"):
@@ -143,7 +160,10 @@ def get_Gold(hmax):
     totalVolume = 0
     #count = 0
     for i in range(0, len(rangex)): # Loop through sections in x direction
-        Pdrop = np.append(Pdrop,pressureDrop(rangex[i],hmax))
+        if (rangex[i] <= hmax):
+            Pdrop = np.append(Pdrop,pressureDrop(rangex[i],hmax))
+        else:
+            Pdrop = np.append(Pdrop,0)    
     #print(len(Pdrop))
     for i in range(0, len(rangex)): # Loop through sections in x direction
         count = 0
@@ -239,4 +259,4 @@ plt.savefig('FinalTempDist.png')
 '''
 
 # Does not boil with given Pdrop, volcanoes must have steeper incline, for collapse to be effective in returning gold.
-# Assumption here was 45 degrees which does not give greazt enough pressure drop as only top layer boils nothing else 
+# Assumption here was 45 degrees which does not give great enough pressure drop as only top layer boils nothing else 
