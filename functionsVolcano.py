@@ -50,12 +50,10 @@ yi,zi,Ti = np.array([ynew,znew,Tnew])
 Pnew = griddata(np.array([y,z]).T,P,np.array([ynew,znew]).T, method='linear', fill_value = np.min(P))
 yi,zi,Pi = np.array([ynew,znew,Pnew])
 
-print(yi)
-print(zi)
-print(Ti)
-print(Pi)
 #print(yi)
-#print(zi)
+##print(zi)
+#print(Ti)
+#print(Pi)
 #for i in range(61):
 #    print(zi[i])
 #print(Ti)
@@ -87,11 +85,11 @@ def Phase(P,T):
 	#Tc = 647 # Kelvin
 	#Pc = 22.064 # MPa
 	P = P/1000000 # Change to MPa
-	#return _utils.getphase(Tc, Pc, T, P, 1, None)
-	ph = IAPWS97(P=P,T=T)
+	#return _utils.getphase(Tc = Tc, Pc = Pc, T = T, P = P)
+	ph = IAPWS97(T=T, P=P)
 	return ph.phase
 
-# print(Phase(2500000, 274))
+#print(Phase(2500000, 274))
     
 def findTemp(y,z):
     '''
@@ -119,16 +117,15 @@ def findPressure(y,z,hmax):
     # delh = -(hmax/xmax) * y + hmax
     # Pi = Pressure(delh-z)
     # return Pi
-
+    xmax = hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
+    delh = -(hmax/xmax) * y + hmax
     i = 0
     while (zi[i] != z):
         i+=1
     j = i
-    while (yi[j] != y and j<i+61):
+    while ((yi[j]) != y and j<i+61):
         j+=1
     P = Pi[j]
-    xmax = hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
-    delh = -(hmax/xmax) * y + hmax
     P = P + Pressure(delh)
     return P
 
@@ -136,7 +133,7 @@ def testPhase(Pi, Ti):
     if (Phase(Pi,Ti) != "Vapour"):
         return False
     return True
-#print(Phase(70000, 363.6675))
+#print(Phase(356744.375, 402.039))
 def get_Gold(hmax):
     # hmax = 
     #x1 = hmax
@@ -151,12 +148,13 @@ def get_Gold(hmax):
     while (hmax > yi[j]):   # Find values we can use from temperature distribution
         j+=1
     # Initialise arrays    
-    rangex = yi[0:j+1]   
+    rangex = yi[0:j]   
     #print(rangex) 
     Pdrop = []
     Pi = []
     Ti = []
     DepthBoiled = []
+    DepthBoiled = np.append(DepthBoiled,0)
     totalVolume = 0
     #count = 0
     for i in range(0, len(rangex)): # Loop through sections in x direction
@@ -164,22 +162,23 @@ def get_Gold(hmax):
             Pdrop = np.append(Pdrop,pressureDrop(rangex[i],hmax))
         else:
             Pdrop = np.append(Pdrop,0)    
-    #print(len(Pdrop))
+    #print(Pdrop)
     for i in range(0, len(rangex)): # Loop through sections in x direction
         count = 0
+        Pi=[]
+        Ti=[]
         for j in range(0,len(yi),61):   #Loop through depths in z direction
             ypoint = rangex[i]
             zpoint = zi[j]
             Pi = np.append(Pi,findPressure(ypoint,zpoint,hmax))
             Ti = np.append(Ti,findTemp(ypoint,zpoint))
             newP = Pi[count] - Pdrop[i]
-            #print(Pi)
+            # print(Pi)
             #print(newP)
             #print(Ti)
+            # print(Phase(newP,Ti[count]+273.15))
             if (testPhase(newP,Ti[count]+273.15) == False):    # Check if water boils, stop when it does not
-               
-               
-                x = Phase(newP,Ti[count]+273.15)
+                #print(Phase(newP,Ti[count]+273.15))
                 #i = len(rangex)
                 DepthBoiled = np.append(DepthBoiled,zpoint)
                 if (i ==0):
@@ -190,7 +189,7 @@ def get_Gold(hmax):
                 #j = len(yi)
                 totalVolume += volume
                 volume = 0
-                break
+                #break
                 #print(totalVolume)
             count+=1    
     
@@ -209,9 +208,10 @@ def get_Gold(hmax):
     minGold = minVolume * minGoldConc   # in grams
     maxGold = maxVolume * maxGoldConc   # in grams
     averageGold = averageVolume * averageGoldConc   # in grams   
-    print(DepthBoiled)
+    #print(DepthBoiled)
     #print(zi)
-    return averageGold  #in grams
+    goldDeposit = [minGold, averageGold, maxGold]
+    return goldDeposit  #in grams
 
 
 print(get_Gold(700))
@@ -248,15 +248,16 @@ plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp),cmap="jet")
 plt.title('Temperature Distribution in Geothermal System')
 plt.xlabel('Y (km)')
 plt.ylabel('Z (km)')
-
+x1,x2,y1,y2 = plt.axis()
+plt.axis((0,4000,y1,y2))
 # sortedT = np.sort(Ti)
 # CS = plt.imshow(sortedT, origin='lower', cmap=cm.jet, extent = [yi.min(),yi.max(),zi.min(),zi.max()], aspect='auto')
 
 
 cbar = plt.colorbar()
 cbar.set_label('Temperature (\xb0C)')
-plt.savefig('FinalTempDist.png')
-'''
+plt.savefig('FinalTempDist3.png')
 
+'''
 # Does not boil with given Pdrop, volcanoes must have steeper incline, for collapse to be effective in returning gold.
 # Assumption here was 45 degrees which does not give great enough pressure drop as only top layer boils nothing else 
