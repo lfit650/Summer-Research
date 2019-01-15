@@ -154,7 +154,6 @@ def get_Gold(hmax):
     Pi = []
     Ti = []
     DepthBoiled = []
-    DepthBoiled = np.append(DepthBoiled,0)
     totalVolume = 0
     #count = 0
     for i in range(0, len(rangex)): # Loop through sections in x direction
@@ -167,6 +166,8 @@ def get_Gold(hmax):
         count = 0
         Pi=[]
         Ti=[]
+        DepthBoiled = np.append(DepthBoiled,0)
+        x = True
         for j in range(0,len(yi),61):   #Loop through depths in z direction
             ypoint = rangex[i]
             zpoint = zi[j]
@@ -176,22 +177,39 @@ def get_Gold(hmax):
             # print(Pi)
             #print(newP)
             #print(Ti)
-            # print(Phase(newP,Ti[count]+273.15))
-            if (testPhase(newP,Ti[count]+273.15) == False):    # Check if water boils, stop when it does not
-                #print(Phase(newP,Ti[count]+273.15))
-                #i = len(rangex)
+            #print(Phase(newP,Ti[count]+273.15))
+            if ((testPhase(newP,Ti[count]+273.15) == True) and (x == False)):
+                x=True
                 DepthBoiled = np.append(DepthBoiled,zpoint)
-                if (i ==0):
-                    volume = math.pi * (-1) *zpoint * ((rangex[i])**2)
-                else:    
-                    volume = math.pi * (-1) *zpoint * ((rangex[i])**2-(rangex[i-1])**2)  # Calculate volume of cylinder
-                #print(zpoint)
-                #j = len(yi)
-                totalVolume += volume
-                volume = 0
-                #break
-                #print(totalVolume)
-            count+=1    
+            while (x==True):
+                if (testPhase(newP,Ti[count]+273.15) == False):
+                    DepthBoiled = np.append(DepthBoiled,zpoint)
+                    delZ = DepthBoiled[1]-DepthBoiled[0]
+                    if (i == 0):
+                        volume = math.pi * (-1) *delZ * ((rangex[i])**2)
+                    else:    
+                        volume = math.pi * (-1) *delZ * ((rangex[i])**2-(rangex[i-1])**2)
+                    totalVolume += volume
+                    volume = 0
+                    DepthBoiled = []
+                    x=False
+            count+=1
+        
+            # if (testPhase(newP,Ti[count]+273.15) == False):    # Check if water boils, stop when it does not
+            #     #print(Phase(newP,Ti[count]+273.15))
+            #     #i = len(rangex)
+            #     DepthBoiled = np.append(DepthBoiled,zpoint)
+            #     if (i ==0):
+            #         volume = math.pi * (-1) *zpoint * ((rangex[i])**2)
+            #     else:    
+            #         volume = math.pi * (-1) *zpoint * ((rangex[i])**2-(rangex[i-1])**2)  # Calculate volume of cylinder
+            #     #print(zpoint)
+            #     #j = len(yi)
+            #     totalVolume += volume
+            #     volume = 0
+            #     #break
+            #     #print(totalVolume)
+            # count+=1    
     
     minPorosity = 0.045
     maxPorosity = 0.0966666667
@@ -256,7 +274,7 @@ plt.axis((0,4000,y1,y2))
 
 cbar = plt.colorbar()
 cbar.set_label('Temperature (\xb0C)')
-plt.savefig('FinalTempDist3.png')
+plt.savefig('FinalTempDist4000.png')
 
 '''
 # Does not boil with given Pdrop, volcanoes must have steeper incline, for collapse to be effective in returning gold.
