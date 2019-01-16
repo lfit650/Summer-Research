@@ -5,7 +5,7 @@ from ipywidgets import interact, fixed, interactive_output, HBox, Button, VBox, 
 import scipy as sp
 import numpy as np
 import numpydoc as npd
-from IAPWS.iapws_master.iapws import _utils, IAPWS97
+from IAPWS.iapws_master.iapws import _utils, IAPWS97, iapws97
 from scipy.interpolate import griddata
 import math
 import matplotlib.pyplot as plt	
@@ -156,8 +156,8 @@ def get_Gold(hmax):
     DepthBoiled = []
     totalVolume = 0
     #count = 0
-    for i in range(0, len(rangex)): # Loop through sections in x direction
-        if (rangex[i] <= hmax):
+    for i in range(0, len(yi)): # Loop through sections in x direction
+        if (i<len(rangex)):
             Pdrop = np.append(Pdrop,pressureDrop(rangex[i],hmax))
         else:
             Pdrop = np.append(Pdrop,0)    
@@ -232,7 +232,7 @@ def get_Gold(hmax):
     return goldDeposit  #in grams
 
 
-print(get_Gold(700))
+#print(get_Gold(700))
 #print(DepthBoiled)
 #print(Pdrop) 
 
@@ -279,3 +279,60 @@ plt.savefig('FinalTempDist4000.png')
 '''
 # Does not boil with given Pdrop, volcanoes must have steeper incline, for collapse to be effective in returning gold.
 # Assumption here was 45 degrees which does not give great enough pressure drop as only top layer boils nothing else 
+
+
+
+j = 0 
+hmax=700
+while (hmax > yi[j]):   # Find values we can use from temperature distribution
+    j+=1
+# Initialise arrays    
+rangex = yi[0:j]   
+#print(rangex) 
+Pdrop = []
+for i in range(0, len(yi)): # Loop through sections in x direction
+        if (i<len(rangex)):
+            Pdrop = np.append(Pdrop,(1.e-6)*pressureDrop(rangex[i],hmax))
+        else:
+            Pdrop = np.append(Pdrop,0)
+
+# Pressure required
+Parray = []
+for i in range (0,len(Ti)):
+    temp = Ti[i] + 273.15
+    Psat = (iapws97._PSat_T(temp))
+    Parray = np.append(Parray,Psat)
+
+#print(Parray)
+PdropNeeded = []
+for j in range (0,len(Pi)):
+    Pdn = Pi[j]*1.e-6 - Parray[j]
+    PdropNeeded = np.append(PdropNeeded,Pdn)
+
+boilArray = []
+for k in range (0, len(PdropNeeded)):
+    if (Pdrop[k]>PdropNeeded[k]):
+        boilArray = np.append(boilArray,1)
+    else:
+        boilArray = np.append(boilArray,0)    
+
+print(boilArray)
+print(Pi)
+print(Parray)
+print(PdropNeeded)
+print(Pdrop)
+
+yi2 = yi.reshape(shp)
+#plt.contourf(yi.reshape(shp),zi.reshape(shp),Parray.reshape(shp),cmap="jet")
+#plt.contourf(yi.reshape(shp),zi.reshape(shp),Pi.reshape(shp),cmap="jet")
+#plt.contourf(yi.reshape(shp),zi.reshape(shp),PdropNeeded.reshape(shp),cmap="jet")
+plt.contourf(yi.reshape(shp),zi.reshape(shp),boilArray.reshape(shp),cmap="jet", levels = np.linspace(0,1,2))
+
+x1,x2,y1,y2 = plt.axis()
+plt.axis((0,4000,y1,y2))
+cbar = plt.colorbar()
+
+#plt.savefig('Parray.png')
+#plt.savefig('Pi.png')
+#plt.savefig('PdropNeeded.png')
+plt.savefig('boilArray.png')
