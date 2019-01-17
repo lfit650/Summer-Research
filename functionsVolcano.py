@@ -74,9 +74,9 @@ def Pressure(z):
 	P = rho*g*z
 	return P
 
-def pressureDrop(y,hmax):
+def pressureDrop(y,xmax,hmax):
 	# hmax = 				# max height of volcano
-    xmax = hmax				# max radius, distance from centre to edge of volcano. 
+    #xmax = 0.5*hmax				# max radius, distance from centre to edge of volcano. 
     delh = -(hmax/xmax) * y + hmax
     Pdrop = Pressure(delh)
     return Pdrop  
@@ -109,7 +109,7 @@ def findTemp(y,z):
     T = Ti[j]
     return T
 
-def findPressure(y,z,hmax):
+def findPressure(y,z,xmax,hmax):
     # # hmax = max height of volcano
 
     # # Chnage xmax for different type of volcanoes (angles).
@@ -117,7 +117,7 @@ def findPressure(y,z,hmax):
     # delh = -(hmax/xmax) * y + hmax
     # Pi = Pressure(delh-z)
     # return Pi
-    xmax = hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
+    #xmax = 0.5*hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
     delh = -(hmax/xmax) * y + hmax
     i = 0
     while (zi[i] != z):
@@ -134,7 +134,7 @@ def testPhase(Pi, Ti):
         return False
     return True
 #print(Phase(356744.375, 402.039))
-def get_Gold(hmax):
+def get_Gold(xmax,hmax):
     # hmax = 
     #x1 = hmax
     # n = 1000
@@ -145,7 +145,7 @@ def get_Gold(hmax):
     #     #print(Pdrop[i])
 
     j = 0 
-    while (hmax > yi[j]):   # Find values we can use from temperature distribution
+    while (xmax > yi[j]):   # Find values we can use from temperature distribution
         j+=1
     # Initialise arrays    
     rangex = yi[0:j]   
@@ -158,7 +158,7 @@ def get_Gold(hmax):
     #count = 0
     for i in range(0, len(yi)): # Loop through sections in x direction
         if (i<len(rangex)):
-            Pdrop = np.append(Pdrop,pressureDrop(rangex[i],hmax))
+            Pdrop = np.append(Pdrop,pressureDrop(rangex[i],xmax,hmax))
         else:
             Pdrop = np.append(Pdrop,0)    
     #print(Pdrop)
@@ -171,7 +171,7 @@ def get_Gold(hmax):
         for j in range(0,len(yi),61):   #Loop through depths in z direction
             ypoint = rangex[i]
             zpoint = zi[j]
-            Pi = np.append(Pi,findPressure(ypoint,zpoint,hmax))
+            Pi = np.append(Pi,findPressure(ypoint,zpoint,xmax,hmax))
             Ti = np.append(Ti,findTemp(ypoint,zpoint))
             newP = Pi[count] - Pdrop[i]
             # print(Pi)
@@ -232,7 +232,7 @@ def get_Gold(hmax):
     return goldDeposit  #in grams
 
 
-#print(get_Gold(700))
+print(get_Gold(350,700))
 #print(DepthBoiled)
 #print(Pdrop) 
 
@@ -281,21 +281,25 @@ plt.savefig('FinalTempDist4000.png')
 # Assumption here was 45 degrees which does not give great enough pressure drop as only top layer boils nothing else 
 
 
+#PRESSURE DISTRIBUTIONS
+
 
 j = 0 
-hmax=700
-while (hmax > yi[j]):   # Find values we can use from temperature distribution
+hmax = 700
+xmax = 1400
+while (xmax > yi[j]):   # Find values we can use from temperature distribution
     j+=1
 # Initialise arrays    
 rangex = yi[0:j]   
 #print(rangex) 
-Pdrop = []
-for i in range(0, len(yi)): # Loop through sections in x direction
-        if (i<len(rangex)):
-            Pdrop = np.append(Pdrop,(1.e-6)*pressureDrop(rangex[i],hmax))
-        else:
-            Pdrop = np.append(Pdrop,0)
-
+Pdrop = [0]*2501
+for i in range(0, len(rangex)): # Loop through sections in x direction
+        j=i
+        Pdrop[j] = (1.e-6)*pressureDrop(rangex[i],xmax,hmax)
+        while (j+61<len(yi)):
+            j+=61
+            Pdrop[j] = (1.e-6)*pressureDrop(rangex[i],xmax,hmax)
+PdropArray = np.asarray(Pdrop)
 # Pressure required
 Parray = []
 for i in range (0,len(Ti)):
@@ -316,17 +320,24 @@ for k in range (0, len(PdropNeeded)):
     else:
         boilArray = np.append(boilArray,0)    
 
-print(boilArray)
-print(Pi)
-print(Parray)
-print(PdropNeeded)
-print(Pdrop)
+#print(len(yi))
+#for m in range (0,len(boilArray)):
+#    print(boilArray[m])
+# print(Pi)
+# print(Parray)
+# print(PdropNeeded)
+# print(Pdrop)
+# print(PdropArray)
+# print(yi)
+# print(zi)
 
+'''
 yi2 = yi.reshape(shp)
 #plt.contourf(yi.reshape(shp),zi.reshape(shp),Parray.reshape(shp),cmap="jet")
 #plt.contourf(yi.reshape(shp),zi.reshape(shp),Pi.reshape(shp),cmap="jet")
 #plt.contourf(yi.reshape(shp),zi.reshape(shp),PdropNeeded.reshape(shp),cmap="jet")
-plt.contourf(yi.reshape(shp),zi.reshape(shp),boilArray.reshape(shp),cmap="jet", levels = np.linspace(0,1,2))
+plt.contourf(yi.reshape(shp),zi.reshape(shp),boilArray.reshape(shp),cmap="seismic",levels = [0,0.5,1])
+#plt.contourf(yi.reshape(shp),zi.reshape(shp),PdropArray.reshape(shp),cmap="jet",levels = np.linspace(0,int(hmax/100),int(hmax/100)+1))
 
 x1,x2,y1,y2 = plt.axis()
 plt.axis((0,4000,y1,y2))
@@ -335,4 +346,6 @@ cbar = plt.colorbar()
 #plt.savefig('Parray.png')
 #plt.savefig('Pi.png')
 #plt.savefig('PdropNeeded.png')
-plt.savefig('boilArray.png')
+plt.savefig('boilArrayxmaX14.png')
+#plt.savefig('Pdrop7.png')
+'''
