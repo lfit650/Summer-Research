@@ -178,8 +178,8 @@ def get_Gold(xmax,hmax):
         else:
             boilArray = np.append(boilArray,0)
 
-    for i in range (0,len(boilArray)):
-        print(boilArray[i])
+    # for i in range (0,len(boilArray)):
+    #     print(boilArray[i])
 
     DepthBoiled = []
     totalVolume = 0
@@ -188,11 +188,11 @@ def get_Gold(xmax,hmax):
         x = True
         for j in range(0,len(yi),61):   #Loop through depths in z direction
             zpoint = zi[j]
-            if ((boilArray[j]==1) and (x == False)):
+            if ((boilArray[j+i]==1) and (x == False)):
                 x=True
                 DepthBoiled = np.append(DepthBoiled,zpoint)
             if (x==True):
-                if (boilArray[j]==0):
+                if (boilArray[j+i]==0):
                     DepthBoiled = np.append(DepthBoiled,zpoint)
                     delZ = DepthBoiled[1]-DepthBoiled[0]
                     if (i == 0):
@@ -225,4 +225,4 @@ def get_Gold(xmax,hmax):
     return goldDeposit  #in grams
 
 
-print(get_Gold(700,700))
+print(get_Gold(350, 700))
