@@ -4,6 +4,12 @@ from ipywidgets import interact, fixed, interactive_output, HBox, Button, VBox, 
 TEXTSIZE = 16
 from IPython.display import clear_output
 import time
+import scipy as sp
+import numpydoc as npd
+from scipy.interpolate import griddata
+import math
+import matplotlib.pyplot as plt	
+from matplotlib import cm
 
 x,y,z,T = np.genfromtxt(r'H:\Summer Research\xyz_T.dat', delimiter = ',').T  
 	
@@ -13,7 +19,7 @@ inds = np.where(abs(x-xmin)<tol)
 y = y[inds]
 z = z[inds]
 z = z - np.max(z)
-T = T[inds]
+P = P[inds]
 # interpolate temperatures to finer grid in z direction
 ynew = np.unique(y)
 	
@@ -35,12 +41,12 @@ znew = list(np.linspace(-dz/2.,zmin-dz/2., abs(zmin)/dz+1))+ list(zu[i+1:])
 shp = ynew.shape
 ynew = ynew.flatten()
 znew = znew.flatten()
-Tnew = griddata(np.array([y,z]).T,T,np.array([ynew,znew]).T, method='linear', fill_value = np.min(T))
-yi,zi,Ti = np.array([ynew,znew,Tnew])
+Pnew = griddata(np.array([y,z]).T,T,np.array([ynew,znew]).T, method='linear', fill_value = np.min(T))
+yi,zi,Pi = np.array([ynew,znew,Tnew])
 
-def findTemp(y,z):
+def findPressure(y,z):
 
-    ### To find Temperature T0 at a  ###
+    ### To find Pressure dP at a  ###
 
     '''
     Parameter:
@@ -56,33 +62,49 @@ def findTemp(y,z):
     j = i
     while (yi[j] != y and j<i+61):
         j+=1
-    T = Ti[j]
-    return T
+    P = Pi[j]
+    return dP
 
 
-def plot_EQ(time):
+def plot_EQ(time): # a boundary as a parameter???
 
-f = plt.figure(figsize=(12,6))
-ax = plt.axes([0.1,0.1,0.8,0.8])
-ax.set_xlabel('x []',size=TEXTSIZE)
-ax.set_ylabel('T []', size=TEXTSIZE)
+    f = plt.figure(figsize=(12,6))
+    ax = plt.axes([0.1,0.1,0.8,0.8])
+    ax.set_xlabel('x []',size=TEXTSIZE)
+    ax.set_ylabel('P []', size=TEXTSIZE)
 
-# T0 = findTemp(y,z) # (get from temperature distribution.)
-#
-# k = 
-# a = ?
-x = np.linspace(-a, a, 1000)
-ax.plot(x, ((1/2)*T0*(math.erf((a-x)/(2*math.sqrt(k*time)))) + (math.erf((a+x)/(2*math.sqrt(k*time))))))
+    #kappa = hydraulic diffusivity
+    # k = permeability
+    k = 
+    # mu = dynamic viscosity
+    mu = 
+    # phi = porosity
+    phi = 
+    # cf = fluid compressibility
+    cf = 
+    # cr = rock compressibility
+    cr = 
+    # dP instead of T0 = pressure drop inside the fracture during the earthquake
+    dP = 
+    
+    a = #bounds
+    kappa = k/(mu*(phi*cf+cr)
+    
+    x = np.linspace(-a, a, 1000)
+    ax.plot(x, ((1/2)*dP*(math.erf((a-x)/(2*math.sqrt(kappa*time)))) + (math.erf((a+x)/(2*math.sqrt(kappa*time))))))
 
-''' 
-At temperature T, find Pboiling (Research or thermodynamic properties library IAPWS)
-Find if Pdrop satisfies equation: P0-Pdrop < Pboiling.
+    plt.show()
+    ''' 
+    At temperature T, find Pboiling (Research or thermodynamic properties library IAPWS)
+    Find if Pdrop satisfies equation: P0-Pdrop < Pboiling.
     From this we find volume of water boiled.
     Therefore amount of gold produced.
 
-'''
+    '''
 
 def EQslider():
 	
 	tsldr = IntSlider(value = 50, description='$time$', min=10, max = 100, step=10)
 	return VBox([HBox([tsldr]), interactive_output(plot_EQ, {'time':tsldr})])
+
+plot_EQ(20)    

@@ -193,6 +193,7 @@ def get_Gold(xmax,hmax):
                 DepthBoiled = np.append(DepthBoiled,zpoint)
             if (x==True):
                 if (boilArray[j+i]==0):
+                    zpoint = zi[j-61]
                     DepthBoiled = np.append(DepthBoiled,zpoint)
                     delZ = DepthBoiled[1]-DepthBoiled[0]
                     if (i == 0):
