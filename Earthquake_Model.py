@@ -63,6 +63,8 @@ def findPressure(y,z):
     while (yi[j] != y and j<i+61):
         j+=1
     P = Pi[j]
+
+    
     return dP
 
 
@@ -75,19 +77,19 @@ def plot_EQ(time): # a boundary as a parameter???
 
     #kappa = hydraulic diffusivity
     # k = permeability
-    k = 
-    # mu = dynamic viscosity
-    mu = 
+    k = 5.92651154e-14  # m^2
+    # mu = dynamic viscosity: at 50 deg Clesius what's temperature?
+    mu = 0.547e-3   # Ns/m^2
     # phi = porosity
-    phi = 
-    # cf = fluid compressibility
-    cf = 
+    phi = 0.070833333333333 #  %
+    # cf = fluid compressibility: what's temperature?
+    cf = 45.8e-11  # 1/Pa
     # cr = rock compressibility
-    cr = 
+    cr = 8.137177997e-10  # 1/Pa
     # dP instead of T0 = pressure drop inside the fracture during the earthquake
     dP = 
     
-    a = #bounds
+    a = 2000 #bounds
     kappa = k/(mu*(phi*cf+cr)
     
     x = np.linspace(-a, a, 1000)
