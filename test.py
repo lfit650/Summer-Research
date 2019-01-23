@@ -10,9 +10,11 @@ from scipy.interpolate import griddata
 import math
 import matplotlib.pyplot as plt	
 from matplotlib import cm
+from scipy.optimize import curve_fit
+from matplotlib import pylab
 #import sphinx_rtd_theme as srt
 
-# read temperature data 
+# read temperature and pressure data 
 x,y,z,P = np.genfromtxt(r'H:\Summer Research\31kBlockEWA_BH_final_xyz_P.dat', delimiter = ',').T  
 x,y,z,T = np.genfromtxt(r'H:\Summer Research\xyz_T.dat', delimiter = ',').T  
 	
@@ -24,7 +26,7 @@ z = z[inds]
 z = z - np.max(z)
 T = T[inds]
 P = P[inds]	
-# interpolate temperatures to finer grid in z direction
+# interpolate temperatures/pressures to finer grid in z direction
 ynew = np.unique(y)
 	
 ymax = 5.e3
@@ -56,9 +58,8 @@ yi,zi,Pi = np.array([ynew,znew,Pnew])
 #print(Pi)
 #for i in range(61):
 #    print(zi[i])
-#print(Ti)
+#print(len(Ti))
 #print(len(zi))
-
 
 
 def Pressure(z): 
@@ -108,6 +109,29 @@ def findTemp(y,z):
         j+=1
     T = Ti[j]
     return T
+'''
+# For graph c pH at 20 degrees C of 7.45.
+# xTemp = np.array([165, 200, 213.333333, 230, 242, 252, 268.5, 279.8, 290, 296])
+# yConc = np.array([5, 10, 15, 20, 25, 30, 40, 50, 60, 67])
+    
+# For graph a, pH at 20 degrees C of 9.55.
+# xTemp = np.array([164.9, 190, 240, 260, 268, 280, 284.5, 290, 298.3, 300])
+# yConc = np.array([2.5, 3, 5, 8.5, 10, 13.5, 15, 17, 20, 21.25])
+
+def exp_Fit(x, a, b, c):
+    return a*np.exp(b*x)+c
+
+popt, pcov = curve_fit(exp_Fit, xTemp, yConc, p0=(1, 1e-6, 1))
+
+xxTemp = np.linspace(0, 320, 2501)
+yyConc = exp_Fit(xxTemp, *popt)
+
+plt.plot(xTemp,yConc,'o', xxTemp, yyConc)
+plt.title('Gold Solubility Changes due to Temperature')
+plt.xlabel('Temp. (\xb0C)')
+plt.ylabel('Au Conc. (ppm)')
+plt.savefig('expFit for c.png')
+'''
 
 def findPressure(y,z,xmax,hmax):
     # # hmax = max height of volcano
@@ -150,6 +174,7 @@ def get_Gold(xmax,hmax):
     # Initialise arrays    
     rangex = yi[0:j]   
     #print(rangex) 
+    
     Pdrop = [0]*2501
     for i in range(0, len(rangex)): # Loop through sections in x direction
             j=i
@@ -215,7 +240,7 @@ def get_Gold(xmax,hmax):
     
     minGoldConc = 4.78358   # in ppm
     maxGoldConc = 16.33333  # in ppm
-    averageGoldConc = 10.55845833333333 # in ppm
+    averageGoldConc = 10.55845833333333 # in ppm        # Subject to change at different depths, graphs in parameter research.
 
     minGold = minVolume * minGoldConc   # in grams
     maxGold = maxVolume * maxGoldConc   # in grams
