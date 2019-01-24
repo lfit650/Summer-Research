@@ -109,20 +109,21 @@ def findTemp(y,z):
         j+=1
     T = Ti[j]
     return T
-'''
+
 # For graph c pH at 20 degrees C of 7.45.
 # xTemp = np.array([165, 200, 213.333333, 230, 242, 252, 268.5, 279.8, 290, 296])
 # yConc = np.array([5, 10, 15, 20, 25, 30, 40, 50, 60, 67])
+# Check because gives negative values at low temperatures.
     
 # For graph a, pH at 20 degrees C of 9.55.
-# xTemp = np.array([164.9, 190, 240, 260, 268, 280, 284.5, 290, 298.3, 300])
-# yConc = np.array([2.5, 3, 5, 8.5, 10, 13.5, 15, 17, 20, 21.25])
+xTemp = np.array([164.9, 190, 240, 260, 268, 280, 284.5, 290, 298.3, 300])
+yConc = np.array([2.5, 3, 5, 8.5, 10, 13.5, 15, 17, 20, 21.25])
 
 def exp_Fit(x, a, b, c):
     return a*np.exp(b*x)+c
 
 popt, pcov = curve_fit(exp_Fit, xTemp, yConc, p0=(1, 1e-6, 1))
-
+'''
 xxTemp = np.linspace(0, 320, 2501)
 yyConc = exp_Fit(xxTemp, *popt)
 
@@ -132,6 +133,8 @@ plt.xlabel('Temp. (\xb0C)')
 plt.ylabel('Au Conc. (ppm)')
 plt.savefig('expFit for c.png')
 '''
+# Call exp_Fit(temperatureValue) ?? exp_Fit(temperatureValue, *popt) to get concentration.
+
 
 def findPressure(y,z,xmax,hmax):
     # # hmax = max height of volcano
@@ -159,6 +162,13 @@ def testPhase(Pi, Ti):
     return True
 #print(Phase(356744.375, 402.039))
 def get_Gold(xmax,hmax):
+
+    minPorosity = 0.045
+    maxPorosity = 0.0966666667
+    averagePorosity = 0.07083333333333333    
+    minGold = 0
+    maxGold = 0
+    averageGold = 0
     # hmax = 
     #x1 = hmax
     # n = 1000
@@ -206,6 +216,9 @@ def get_Gold(xmax,hmax):
     # for i in range (0,len(boilArray)):
     #     print(boilArray[i])
 
+
+    # To use gold solubility changes need to calculate all cylinders at every depth and find concentration for bottom of the cylinder temperature.
+    '''
     DepthBoiled = []
     totalVolume = 0
     for i in range (0, len(rangex)):
@@ -230,10 +243,6 @@ def get_Gold(xmax,hmax):
                     DepthBoiled = []
                     x=False
     
-    minPorosity = 0.045
-    maxPorosity = 0.0966666667
-    averagePorosity = 0.07083333333333333
-    
     minVolume = totalVolume * minPorosity   # in m^3
     maxVolume = totalVolume * maxPorosity   # in m^3
     averageVolume = totalVolume * averagePorosity   # in m^3 
@@ -247,8 +256,48 @@ def get_Gold(xmax,hmax):
     averageGold = averageVolume * averageGoldConc   # in grams   
     #print(DepthBoiled)
     #print(zi)
+    '''
+
+
+    DepthBoiled = []
+    totalVolume = 0
+    for i in range (0, len(rangex)):
+        DepthBoiled = np.append(DepthBoiled,0)
+        for j in range(0,len(yi),61):   #Loop through depths in z direction
+            zpoint = zi[j]
+            #print(j+i)
+            #print(boilArray[j+i])
+            if (boilArray[j+i]==1):
+                DepthBoiled = np.append(DepthBoiled,zpoint)
+                depthT = findTemp(rangex[i],zpoint)
+                goldConc = exp_Fit(depthT, *popt)
+                delZ = DepthBoiled[1]-DepthBoiled[0]
+                if (i == 0):
+                    volume = math.pi * (-1) *delZ * ((rangex[i])**2)
+                    minVolume = volume * minPorosity   # in m^3
+                    maxVolume = volume * maxPorosity   # in m^3
+                    averageVolume = volume * averagePorosity   # in m^3     
+                else:    
+                    volume = math.pi * (-1) *delZ * ((rangex[i])**2-(rangex[i-1])**2)
+                    minVolume = volume * minPorosity   # in m^3
+                    maxVolume = volume * maxPorosity   # in m^3
+                    averageVolume = volume * averagePorosity   # in m^3 
+
+                minGold += minVolume * goldConc   # in grams
+                maxGold += maxVolume * goldConc   # in grams
+                averageGold += averageVolume * goldConc   # in grams
+
+                DepthBoiled = []
+                DepthBoiled = np.append(DepthBoiled,zpoint)
+
+            else:
+                DepthBoiled = []
+                DepthBoiled = np.append(DepthBoiled,zpoint)
+
     goldDeposit = [minGold, averageGold, maxGold]
     return goldDeposit  #in grams
+
+
 
 
 print(get_Gold(350, 700))
