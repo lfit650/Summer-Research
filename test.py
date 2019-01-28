@@ -61,6 +61,25 @@ yi,zi,Pi = np.array([ynew,znew,Pnew])
 #print(len(Ti))
 #print(len(zi))
 
+'''
+# TEMPERATURE DISTRIBUTION
+
+yi2 = yi.reshape(shp)
+plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp),cmap="jet")
+plt.title('Temperature Distribution in Geothermal System')
+plt.xlabel('Y (km)')
+plt.ylabel('Z (km)')
+x1,x2,y1,y2 = plt.axis()
+plt.axis((0,4000,y1,y2))
+# sortedT = np.sort(Ti)
+# CS = plt.imshow(sortedT, origin='lower', cmap=cm.jet, extent = [yi.min(),yi.max(),zi.min(),zi.max()], aspect='auto')
+
+
+cbar = plt.colorbar()
+cbar.set_label('Temperature (\xb0C)')
+plt.savefig('FinalTempDist4000.png')
+
+'''
 
 def Pressure(z): 
 	'''
@@ -179,7 +198,7 @@ def get_Gold(xmax,hmax):
     #     #print(Pdrop[i])
 
     j = 0 
-    while (xmax > yi[j]):   # Find values we can use from temperature distribution
+    while (xmax >= yi[j]):   # Find values we can use from temperature distribution
         j+=1
     # Initialise arrays    
     rangex = yi[0:j]   
@@ -193,6 +212,7 @@ def get_Gold(xmax,hmax):
                 j+=61
                 Pdrop[j] = (1.e-6)*pressureDrop(rangex[i],xmax,hmax)
     PdropArray = np.asarray(Pdrop)
+    #print(Pdrop)
     # Pressure required
     Parray = []
     for i in range (0,len(Ti)):
@@ -205,7 +225,7 @@ def get_Gold(xmax,hmax):
     for j in range (0,len(Pi)):
         Pdn = Pi[j]*1.e-6 - Parray[j]
         PdropNeeded = np.append(PdropNeeded,Pdn)
-    
+
     boilArray = []
     for k in range (0, len(PdropNeeded)):
         if (PdropArray[k]>PdropNeeded[k]):
@@ -219,6 +239,8 @@ def get_Gold(xmax,hmax):
 
     # To use gold solubility changes need to calculate all cylinders at every depth and find concentration for bottom of the cylinder temperature.
     '''
+    # NO CHANGE IN SOLUBILITY
+
     DepthBoiled = []
     totalVolume = 0
     for i in range (0, len(rangex)):
@@ -257,7 +279,7 @@ def get_Gold(xmax,hmax):
     #print(DepthBoiled)
     #print(zi)
     '''
-
+    # CHANGE IN SOLUBILITY INCLUDED
 
     DepthBoiled = []
     for i in range (0, len(rangex)):
@@ -295,9 +317,38 @@ def get_Gold(xmax,hmax):
                     DepthBoiled = np.append(DepthBoiled,zpoint)
 
     goldDeposit = [minGold, averageGold, maxGold]
+
+    '''
+    #PLOTS OF PRESSURES AND DISTRIBUTIONS
+    yi2 = yi.reshape(shp)
+    #plt.contourf(yi.reshape(shp),zi.reshape(shp),Parray.reshape(shp),cmap="jet")
+    #plt.contourf(yi.reshape(shp),zi.reshape(shp),Pi.reshape(shp),cmap="jet")
+    #plt.contourf(yi.reshape(shp),zi.reshape(shp),PdropNeeded.reshape(shp),cmap="jet")
+    plt.contour(yi.reshape(shp),zi.reshape(shp),boilArray.reshape(shp),cmap="seismic", levels = [0,1])   # levels = [0,0.5,1]
+    #plt.contourf(yi.reshape(shp),zi.reshape(shp),PdropArray.reshape(shp),cmap="jet",levels = np.linspace(0,int(hmax/100),int(hmax/100)+1))
+    plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp),cmap="jet")
+
+    #x = np.linspace(0,xmax,1000)
+    x = np.linspace(0,xmax+50,1000)
+    plt.plot(x,(-(hmax/xmax)*x+hmax),'-.k')
+
+    plt.title('Temperature Distribution in Geothermal System, WITH BOILED')
+    plt.xlabel('Y (km)')
+    plt.ylabel('Z (km)')
+
+    x1,x2,y1,y2 = plt.axis()
+    plt.axis((0,2000,y1,y2))
+    cbar = plt.colorbar()
+    cbar.set_label('Temperature (\xb0C)')
+
+    #plt.savefig('Parray.png')
+    #plt.savefig('Pi.png')
+    #plt.savefig('PdropNeeded.png')
+    #plt.savefig('boilArrayxmaX14.png')
+    #plt.savefig('Pdrop7x14.png')
+    plt.savefig('test2.png')
+    '''
     return goldDeposit  #in grams
 
 
-
-
-print(get_Gold(350, 700))
+print(get_Gold(700, 700))
