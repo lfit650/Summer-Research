@@ -139,7 +139,7 @@ plt.savefig('expFit for c.png')
 def findPressure(y,z,xmax,hmax):
     # # hmax = max height of volcano
 
-    # # Chnage xmax for different type of volcanoes (angles).
+    # # Change xmax for different type of volcanoes (angles).
     # xmax = hmax # max radius, distance from centre to edge of volcano. 45 degrees if = hmax
     # delh = -(hmax/xmax) * y + hmax
     # Pi = Pressure(delh-z)
@@ -260,7 +260,6 @@ def get_Gold(xmax,hmax):
 
 
     DepthBoiled = []
-    totalVolume = 0
     for i in range (0, len(rangex)):
         DepthBoiled = np.append(DepthBoiled,0)
         for j in range(0,len(yi),61):   #Loop through depths in z direction
@@ -292,7 +291,8 @@ def get_Gold(xmax,hmax):
 
             else:
                 DepthBoiled = []
-                DepthBoiled = np.append(DepthBoiled,zpoint)
+                if (zpoint != -3800):
+                    DepthBoiled = np.append(DepthBoiled,zpoint)
 
     goldDeposit = [minGold, averageGold, maxGold]
     return goldDeposit  #in grams
