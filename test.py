@@ -52,6 +52,12 @@ yi,zi,Ti = np.array([ynew,znew,Tnew])
 Pnew = griddata(np.array([y,z]).T,P,np.array([ynew,znew]).T, method='linear', fill_value = np.min(P))
 yi,zi,Pi = np.array([ynew,znew,Pnew])
 
+# dy = zi[0]
+# for i in range (1,len(zi)):
+#     if (zi[i]<dy):
+#         dy = zi[i]
+# print(dy)
+#print(zi)
 #print(yi)
 ##print(zi)
 #print(Ti)
@@ -129,6 +135,8 @@ def findTemp(y,z):
     T = Ti[j]
     return T
 
+
+# Gives solubility data due to change in temperature only at different pH levels. Pressure not measured/constant
 # For graph c pH at 20 degrees C of 7.45.
 xTemp = np.array([165, 200, 213.333333, 230, 242, 252, 268.5, 279.8, 290, 296])
 yConc = np.array([5, 10, 15, 20, 25, 30, 40, 50, 60, 67])
@@ -237,6 +245,7 @@ def get_Gold(xmax,hmax):
     #     print(boilArray[i])
     goldSolgm3 = []
     for m in range (0,len(Ti)):
+        # Include if else statement for contours only in boiling region.
         #if (boilArray[m] == 1):
         goldAmount = averagePorosity * exp_Fit(Ti[m], *popt)
         goldSolgm3 = np.append(goldSolgm3,goldAmount)
@@ -329,15 +338,16 @@ def get_Gold(xmax,hmax):
     goldDeposit = [minGold, averageGold, maxGold]
 
     amountGoldArray = np.asarray(amountGold)
-    
+    '''
     #PLOTS OF PRESSURES AND DISTRIBUTIONS
+    ax = plt.axes([0.1,0.1,0.8,0.8])
     yi2 = yi.reshape(shp)
     #plt.contourf(yi.reshape(shp),zi.reshape(shp),Parray.reshape(shp),cmap="jet")
     #plt.contourf(yi.reshape(shp),zi.reshape(shp),Pi.reshape(shp),cmap="jet")
     #plt.contourf(yi.reshape(shp),zi.reshape(shp),PdropNeeded.reshape(shp),cmap="jet")
     CM1 = plt.contour(yi.reshape(shp),zi.reshape(shp),boilArray.reshape(shp),colors='white',linewidths=3, linestyles='solid', levels = [0,1])   # levels = [0,0.5,1]
     #plt.contourf(yi.reshape(shp),zi.reshape(shp),PdropArray.reshape(shp),cmap="jet",levels = np.linspace(0,int(hmax/100),int(hmax/100)+1))
-    CM2 = plt.contour(yi.reshape(shp),zi.reshape(shp),goldSolgm3.reshape(shp),cmap="gray", levels = [1,2,3,4,5,6,7], hatches=['-', '/', '\\', '//'])    # Hatches if contourf
+    CM2 = plt.contour(yi.reshape(shp),zi.reshape(shp),goldSolgm3.reshape(shp),cmap="gray", levels = [1,2,3,4,5,6,7,8,9], hatches=['-', '/', '\\', '//'])    # Hatches if contourf
     plt.clabel(CM2, CM2.levels, inline=True, manual=True, fmt = '%.0fg/m\u00b3', fontsize=9)
     plt.contourf(yi.reshape(shp),zi.reshape(shp),Ti.reshape(shp),cmap="jet")
     #x = np.linspace(0,xmax,1000)
@@ -345,14 +355,16 @@ def get_Gold(xmax,hmax):
     plt.plot(x,(-(hmax/xmax)*x+hmax),'-.k',label='Volcano')
     plt.legend()
 
-    plt.fill_between([0,2000],[0,0],[hmax+100,hmax+100], color=[0.9,0.9,0.9])
+    plt.fill_between([0,3000],[0,0],[hmax+100,hmax+100], color=[0.9,0.9,0.9])
     
     plt.title('Pressure Drop due to Volcano Collapse')
     plt.xlabel('Y (m)')
     plt.ylabel('Z (m)')
 
     x1,x2,y1,y2 = plt.axis()
-    plt.axis((0,2000,-2500,hmax+100))
+    plt.axis((0,3000,-3800,hmax+100))
+    string = "Avg Gold = {0:.2f}t".format(averageGold/1000000)
+    ax.text(.70, .95, string, position = (0.57,0.86), fontstyle='italic', transform=ax.transAxes, size=11, color = 'k')
     cbar = plt.colorbar()
     cbar.set_label('Temperature (\xb0C)')
     #cbar.set_label('Pressure Drop (MPa)')
@@ -363,8 +375,43 @@ def get_Gold(xmax,hmax):
     #plt.savefig('boilArrayxmaX14.png')
     #plt.savefig('Pdrop7x14.png')
     plt.savefig('t.png')
+    '''
+    Tarray = []
+    depthArray = []
+    for i in range(0,len(Pi)):
+        if ((Pi[i]/1000000)>=Parray[i]):
+            Tarray = np.append(Tarray, Ti[i])
+            depthArray = np.append(depthArray, zi[i])
     
-    return goldDeposit  #in grams
+    plt.plot(Tarray,depthArray)
+    plt.title('Temperature VS Depth')
+    plt.xlabel('Temp (\xb0C)')
+    plt.ylabel('Depth (m)')    
+    plt.show()
+    #plt.savefig('parrayVST.png')
+    #return goldDeposit  #in grams
+    return averageGold
+
+    # Same as "low quality underground mine"
 
 
 print(get_Gold(1400, 700))
+'''   
+pms = []
+size = np.linspace(200,3000,100)
+avgH = 700
+for sz in size:
+    pm = get_Gold(avgH,sz)/1000000
+    pms.append(pm)
+  
+#for i in range (0,len(x)):
+#for sz,pm in zip(size,pms):
+plt.plot(Ti,Parray)
+
+plt.title('Effect of Height of Volcano on Amount of Gold Produced')
+plt.xlabel('Changing Height with Constant Length of 700 (m)')
+plt.ylabel('Gold (Tonnes)')
+
+plt.show()
+#plt.savefig('heightVSgold.png')     
+'''    
