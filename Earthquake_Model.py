@@ -12,6 +12,7 @@ from scipy.optimize import root as root
 import math
 import matplotlib.pyplot as plt	
 from matplotlib import cm
+from scipy.integrate import quad as defint
 
 x,y,z,P = np.genfromtxt(r'H:\Summer Research\31kBlockEWA_BH_final_xyz_P.dat', delimiter = ',').T 
 	
@@ -72,7 +73,7 @@ def findPressure(y,z):
     
     return P    # As pressure drops to zero when fault opens
 dP0 = -0.1e7
-#time = 0.1
+time = 0.1
 a = 1 
 #a = math.inf #bounds/infinite
 
@@ -112,9 +113,9 @@ def plot_EQ(time): # a boundary as a parameter???
 
     f = plt.figure(figsize=(12,6))
     ax = plt.axes([0.1,0.1,0.8,0.8])
-    ax.set_xlabel('x []',size=TEXTSIZE)
-    ax.set_ylabel('P []', size=TEXTSIZE)
-
+    ax.set_xlabel('x [m]',size=TEXTSIZE)
+    ax.set_ylabel('-P [MPa]', size=TEXTSIZE)
+    plt.title('Earthquake Pressure with Varying Times',size=TEXTSIZE)
     #print(kappa)
     #fig = plt.figure()
     #ax = plt.axes()
@@ -125,7 +126,7 @@ def plot_EQ(time): # a boundary as a parameter???
     pms = []
     ts = np.logspace(-1, 3, 10)
     for time in ts:
-        pm = pressureModel(x,-dP,a,kappa,time)
+        pm = (1.e-6)*pressureModel(x,-dP,a,kappa,time)
         pms.append(pm)
         # CHECK erf cannot take array x as input, only scalar number. sp.special works, graph looks incorrect. 
     
@@ -134,16 +135,23 @@ def plot_EQ(time): # a boundary as a parameter???
         plt.plot(x,pm,label='t={:3.2e}'.format(time))
     '''
     plt.plot(x,pressureModel(x,-dP,a,kappa,time))
-    plt.axhline(dP0,linestyle=':',color='k')
-    #plt.legend()
+    plt.axhline((1.e-6)*dP0,linestyle=':',color='k',label='Boiling Threshold Pressure')
+    #plt.legend(prop={'size': 14})
+    
     sol = root(fun,x0 = [-1,1], args=(time,))
     if (sol.success):
         string = "Solution = ({0:.3f}, {1:.3f})".format(sol.x[0], sol.x[1])
+        h = lambda x1: fun(x1,time)
+        area = defint(h,sol.x[0],sol.x[1])
+        print(area)
     else:
         string = "No Solution"
 
     ax.text(.70, .95, string, position = (0.69,0.05), fontstyle='italic', transform=ax.transAxes, size=TEXTSIZE, color = 'r')
+    
     ax.set_ylim([-0.8e7,0])
+    ax.set_xlim([-10*a,10*a])
+    
     #print(sol.x)
     #print(sol.success)
     #plt.savefig('EarthquakeVaryingTime.png')
@@ -157,4 +165,4 @@ def EQslider():
 
 
 
-#plot_EQ(time)    
+plot_EQ(time)    
