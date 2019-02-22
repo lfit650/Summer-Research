@@ -1,9 +1,10 @@
+# This file is to model earthquakes causing pressure drops.
+
 import numpy as np
 from matplotlib import pyplot as plt
 from ipywidgets import interact, fixed, interactive_output, HBox, Button, VBox, Output, IntSlider, Checkbox, FloatSlider
-TEXTSIZE = 16
+TEXTSIZE = 20
 from IPython.display import clear_output
-#import time
 import scipy as sp
 import numpydoc as npd
 from scipy.interpolate import griddata
@@ -14,155 +15,137 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy.integrate import quad as defint
 
-x,y,z,P = np.genfromtxt(r'H:\Summer Research\31kBlockEWA_BH_final_xyz_P.dat', delimiter = ',').T 
-	
-# get min x slice of data
-xmin = np.min(x); tol = 1.e-6
-inds = np.where(abs(x-xmin)<tol)
-y = y[inds]
-z = z[inds]
-z = z - np.max(z)
-P = P[inds]
-# interpolate temperatures to finer grid in z direction
-ynew = np.unique(y)
-	
-ymax = 5.e3
-dy = 100.
-yu = np.unique(y)
-i = np.argmin(abs(yu - ymax))		
-ynew = list(np.linspace(dy/2.,ymax+dy/2., abs(ymax)/dy+1))+ list(yu[i+1:])
-# ye = list(np.linspace(0,ye[i+1], abs(ye[i+1])/dy+1))+ list(ye[i+2:])
-	
-zmin = -1.4e3
-dz = 50.
-zu = np.flipud(np.unique(z))
-i = np.argmin(abs(zu - zmin))		
-znew = list(np.linspace(-dz/2.,zmin-dz/2., abs(zmin)/dz+1))+ list(zu[i+1:])
-# ze = list(np.linspace(0,ze[i+1], abs(ze[i+1])/dz+1))+ list(ze[i+2:])
-			
-[ynew,znew] = np.meshgrid(ynew, znew)
-shp = ynew.shape
-ynew = ynew.flatten()
-znew = znew.flatten()
-Pnew = griddata(np.array([y,z]).T,P,np.array([ynew,znew]).T, method='linear', fill_value = np.min(P))
-yi,zi,Pi = np.array([ynew,znew,Pnew])
+# Initialise all constants
 
-
-#print(yi)
-
-def findPressure(y,z):
-
-    ### To find Pressure dP at a  ###
-
-    '''
-    Parameter:
-        y = (float) distance across from the surface.
-        z = (float) distance downwards, below surface.
-    Return:
-        P = Pressure at point (y,z)
-    
-    '''
-    i = 0
-    while (zi[i] != z):
-        i+=1
-    j = i
-    while (yi[j] != y and j<i+61):
-        j+=1
-    P = Pi[j]
-
-    
-    return P    # As pressure drops to zero when fault opens
-dP0 = -0.1e7
+dP0 = -0.1e7    # Boiling threshold Pressure
 time = 0.1
-a = 1 
-#a = math.inf #bounds/infinite
+a = 1   # Bounds of fracture
 
 #kappa = hydraulic diffusivity
 # k = permeability
 k = 5.92651154e-14  # m^2
-# mu = dynamic viscosity: at 50 deg Clesius what's temperature?
+# mu = dynamic viscosity
 mu = 0.547e-3   # Ns/m^2
 # phi = porosity
 phi = 0.070833333333333 #  %
-# cf = fluid compressibility: what's temperature?
+# cf = fluid compressibility
 cf = 45.8e-11  # 1/Pa
 # cr = rock compressibility
 cr = 8.137177997e-10  # 1/Pa
 # Or could use total compressibility value ct = 1.125e-9 1/Pa
 
-# dP instead of T0 = pressure drop inside the fracture during the earthquake
-# Cycle through full depth to get all pressures??
-# Get largest pressure drop.
-'''
-dP = Pi[0]
-#dP = 10.
-for i in range (1,len(Pi)):
-    if (Pi[i]>dP):
-        dP = Pi[i]
-'''
-dP = 10.e6
-#dP = 101325 # Atmopspheric Pressure    
+# dP is pressure drop inside the fracture during the earthquake
+dP = 10.e6    
 kappa = k/(mu*(phi*(cf+cr)))
+
 def fun(x,time):
+    '''
+    Returns:
+        Function, model + dP0 to be used for root.
+    '''
     return (1/2)*dP*(erf((a-x)/(2*np.sqrt(kappa*time))) + erf((a+x)/(2*np.sqrt(kappa*time)))) + dP0
 
 def pressureModel(x,dP,a,kappa,time):
+    '''
+    Returns:
+        Pressure equation.
+    '''
     return (1/2)*dP*(erf((a-x)/(2*math.sqrt(kappa*time))) + erf((a+x)/(2*math.sqrt(kappa*time))))
 
-def plot_EQ(time): # a boundary as a parameter???
+# Code below used to plot hydraulic diffusivity changes effects. 
+'''
+kappa = k/(mu*(phi*(cf+cr)))
+mul=0.1 # multiple of kappa.
+# Initialise arrays.
+kArray = []
+solArray = []
+while(mul<=3):  # Loop through diffusivitys upto 3*kappa.
+    kappa *= mul
+    kArray.append(kappa)    # Append array of different kappa values.
+    sol1 = root(fun,x0 = [-1,1], args=(time,))
+    solArray.append(sol1.x[1])  # Append solutions/intercepts for different kappa.
+    kappa /= mul    # Rest kappa.
+    mul += 0.1  # Cycle to next multiple.
+# Plotting.    
+plt.plot(kArray,solArray,'-r')
+#plt.xlabel('Hydraulic Diffusivity',size=TEXTSIZE-2)
+#plt.ylabel('Width of Boiling Region', size=TEXTSIZE-2)
+#plt.title('Effect of Diffusivity on Boiling Region',size=TEXTSIZE)
+#plt.show()
+plt.gcf().patch.set_facecolor([66/255.,186/255.,151/255.])
+plt.savefig('diffusivityVSregionw.png')#, facecolor = plt.gcf().get_facecolor(), transparent = True)
+'''
 
+def plot_EQ(time): 
+    '''
+    Function showing the curve of pressure drop profiles at different times, where time is a slider in a pyhton notebook.
+    Parameters:
+        time = time (s)
+    Returns:
+        Shows plot of pressure model for given time.    
+    '''
+    # Set up figure window and axes size.
     f = plt.figure(figsize=(12,6))
     ax = plt.axes([0.1,0.1,0.8,0.8])
+    # Set plot labels and title.
     ax.set_xlabel('x [m]',size=TEXTSIZE)
     ax.set_ylabel('-P [MPa]', size=TEXTSIZE)
     plt.title('Earthquake Pressure with Varying Times',size=TEXTSIZE)
-    #print(kappa)
-    #fig = plt.figure()
-    #ax = plt.axes()
 
+    # Create x array to input into the model.
     x = np.linspace(-10*a, 10*a, 1000)
     #a = 1.e3
+    
+    # Below is code to plot for varying times without the slider.
     '''
-    pms = []
-    ts = np.logspace(-1, 3, 10)
+    pms = []    # Initialise array.
+    ts = np.logspace(-1, 3, 10) # Set array of times to cycle through
     for time in ts:
         pm = (1.e-6)*pressureModel(x,-dP,a,kappa,time)
-        pms.append(pm)
-        # CHECK erf cannot take array x as input, only scalar number. sp.special works, graph looks incorrect. 
-    
-    #for i in range (0,len(x)):
+        pms.append(pm) 
+
     for time,pm in zip(ts,pms):
-        plt.plot(x,pm,label='t={:3.2e}'.format(time))
+        plt.plot(x,pm,label='t={:3.2e}s'.format(time))
     '''
-    plt.plot(x,pressureModel(x,-dP,a,kappa,time))
-    plt.axhline((1.e-6)*dP0,linestyle=':',color='k',label='Boiling Threshold Pressure')
-    #plt.legend(prop={'size': 14})
+    # Comment out if using above code.
+    plt.plot(x,pressureModel(x,-dP,a,kappa,time))   # Plot pressure model for given parameters and slider bar of time.
     
+    # Plotting threshold line
+    plt.axhline((1.e-6)*dP0,linestyle=':',color='k',label='Boiling Threshold Pressure')
+    plt.legend(prop={'size': 14})
+
+    # If plotting varying times comment starting here ***
+
+    # Find solution/intercepts between threshold and pressure model using scipy.optimize.root function.
     sol = root(fun,x0 = [-1,1], args=(time,))
     if (sol.success):
+        # Create string of solution if intercept was found.
         string = "Solution = ({0:.3f}, {1:.3f})".format(sol.x[0], sol.x[1])
-        h = lambda x1: fun(x1,time)
-        area = defint(h,sol.x[0],sol.x[1])
-        print(area)
     else:
         string = "No Solution"
 
+    # Plot string as text in figure.
     ax.text(.70, .95, string, position = (0.69,0.05), fontstyle='italic', transform=ax.transAxes, size=TEXTSIZE, color = 'r')
     
-    ax.set_ylim([-0.8e7,0])
+    # Set axes limits.
+    #ax.set_ylim([-0.8e7,0])
     ax.set_xlim([-10*a,10*a])
     
-    #print(sol.x)
-    #print(sol.success)
-    #plt.savefig('EarthquakeVaryingTime.png')
+    # End comment here ***
+
+    #Uncomment if using varying times.
+    #plt.gcf().patch.set_facecolor([66/255.,186/255.,151/255.])
+    #plt.savefig('EarthquakeVaryingTimes.png', facecolor = plt.gcf().get_facecolor(), transparent = True)
+    
+    #show plot for notebook with slider.
     plt.show()
 
 
 def EQslider():
-	
+	'''
+    Slider function created so time can be a slider if the function is run in a notebook
+    '''
 	tsldr = IntSlider(value = 16, description='$time$', min=1, max = 35, step=1)
 	return VBox([HBox([tsldr]), interactive_output(plot_EQ, {'time':tsldr})])
 
-
-
-plot_EQ(time)    
+#plot_EQ(time)    
